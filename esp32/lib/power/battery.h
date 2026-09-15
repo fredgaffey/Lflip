@@ -8,6 +8,11 @@
 // If the firmware crashes it can't protect anything; hardware protection still
 // belongs on the cell. See MEMORY: battery-soft-cutoff.
 //
+// BATT_NO_PARK (build flag): disables the park entirely — volts() keeps working
+// and still feeds the app, but isLow() always says false and parkForever() only
+// warns. Set for demo builds so no firmware path can sleep a board mid-demo.
+// With it set NOTHING in software protects the cells from over-discharge.
+//
 // REQUIRES a resistor divider from the battery to A0 so the pin never sees more
 // than 3.3 V:   batt+ --[R_top]-- A0 --[R_bot]-- GND
 //   single LiPo (4.2 V max): e.g. 100k / 220k     2S (~8.4 V): e.g. 100k / 47k
@@ -40,19 +45,29 @@ namespace batt {
   // True only if a plausible cell voltage is reading LOW (confirmed twice, so a
   // single noisy sample can't trip it). False if healthy OR if no sense wired.
   inline bool isLow() {
+#ifdef BATT_NO_PARK
+    return false;                                 // demo build: never park
+#else
     float v = volts();
     if (v < SENSE_FLOOR || v >= CUTOFF_V) return false;
     delay(100);
     float v2 = volts();
     return (v2 >= SENSE_FLOOR && v2 < CUTOFF_V);
+#endif
   }
 
   // Park in deep sleep forever. Power-cycle to recover. No wake timer on purpose:
   // a low cell should draw ~nothing, not keep waking to re-check.
   inline void parkForever() {
+#ifdef BATT_NO_PARK
+    Serial.printf("\n*** battery low (%.2fV) — park DISABLED (BATT_NO_PARK). "
+                  "Staying awake; cells are UNPROTECTED. ***\n", volts());
+    return;
+#else
     Serial.printf("\n*** BATTERY LOW (%.2fV) — parking in deep sleep. "
                   "Power-cycle to recover. ***\n", volts());
     Serial.flush();
     esp_deep_sleep_start();
+#endif
   }
 }
