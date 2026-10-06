@@ -144,7 +144,9 @@ const inputRef = ref<InstanceType<typeof IonTextarea> | null>(null)
 marked.setOptions({ breaks: true, gfm: true })
 
 function render(text: string): string {
-  const html = marked.parse(text ?? '') as string
+  // the model emits narrow/zero-width spaces that some fonts render as nothing
+  const clean = (text ?? '').replace(/[  -​  　]/g, ' ')
+  const html = marked.parse(clean) as string
   // wrap tables so a wide one (e.g. all 8 states) scrolls sideways inside the
   // bubble instead of squashing every column until the text wraps letter by letter
   const wrapped = html.replace(/<table>/g, '<div class="table-scroll"><table>')

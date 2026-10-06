@@ -70,7 +70,10 @@ CONTEXT = (
     "- do not guess or invent numbers.\n\n"
     "Call a tool when the question is about the learner's own data; answer "
     "directly for general road-rule or licence questions. Be concise and "
-    "practical and use Australian terms.\n\n"
+    "practical and use Australian terms and spelling.\n\n"
+    "Only state licence rules you are sure of. Do not invent extra conditions "
+    "such as minimum session lengths; if unsure, tell the learner to check "
+    "with Access Canberra or their state's licensing authority.\n\n"
     "Never write tool calls, JSON, or function syntax in your replies. Use the "
     "real tool-calling mechanism to call a tool; otherwise reply in plain "
     "English. If you cannot access the data needed, just say so.\n\n"
@@ -151,7 +154,8 @@ def generate_title(prompt: str) -> str | None:
     messages = [
         {"role": "system", "content": (
             "You generate a concise title for a chat, 3 to 5 words long. "
-            "Reply with only the title text, no quotes and no trailing punctuation."
+            "Reply with only the title text, no quotes and no trailing punctuation. "
+            "Use Australian spelling (licence, not license)."
         )},
         {"role": "user", "content": prompt},
     ]
